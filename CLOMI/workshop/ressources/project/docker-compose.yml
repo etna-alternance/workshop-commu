@@ -1,0 +1,126 @@
+# Coder ici
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"  # UI UX de traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+      - "traefik.enable=true"
+    networks:
+      - micro-services
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+  
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  user:
+    build: ./user-service
+    ports:
+      - "5000:80"
+    environment:
+      - POSTGRES_USER=user_user
+      - POSTGRES_PASSWORD=user_password
+      - POSTGRES_DB=user_db
+    depends_on:
+      - user-db
+    networks:
+      - micro-services
+
+  user-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=user_user
+      - POSTGRES_PASSWORD=user_password
+      - POSTGRES_DB=user_db
+    volumes:
+      - user-data:/var/lib/postgresql/data
+      - ./user-service/init-user.sql:/docker-entrypoint-initdb.d/init-user.sql
+    networks:
+      - micro-services
+
+  product:
+    build: ./product-service
+    ports:
+      - "5001:80"
+    depends_on:
+      - product-db
+    networks:
+      - micro-services
+
+  product-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=product_user
+      - POSTGRES_PASSWORD=product_password
+      - POSTGRES_DB=product_db
+    volumes:
+      - product-data:/var/lib/postgresql/data
+      - ./product-service/init-product.sql:/docker-entrypoint-initdb.d/init-product.sql
+    networks:
+      - micro-services
+
+  order:
+    build: ./order-service
+    ports:
+      - "5002:80"
+    depends_on:
+      - order-db
+    networks:
+      - micro-services
+
+  order-db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=order_user
+      - POSTGRES_PASSWORD=order_password
+      - POSTGRES_DB=order_db
+    volumes:
+      - order-data:/var/lib/postgresql/data
+      - ./order-service/init-order.sql:/docker-entrypoint-initdb.d/init-order.sql
+    networks:
+      - micro-services
+
+  notifier:
+    build: ./notifier-service
+    depends_on:
+      - order
+      - kafka
+    networks:
+      - micro-services
+
+volumes:
+  user-data:
+    driver: local
+  product-data:
+    driver: local
+  order-data:
+    driver: local
+
+networks:
+  micro-services:
+    driver: bridge
