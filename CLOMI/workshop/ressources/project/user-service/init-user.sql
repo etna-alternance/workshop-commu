@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (nom, prenom, adresse) VALUES
-('Dupont', 'Jean', '123 rue des Lilas, Paris'),
-('Martin', 'Claire', '45 avenue du Général, Lyon'),
-('Durand', 'Paul', '78 boulevard Haussmann, Paris');
+('Dupont', 'Jean', 'Paris'),
+('Martin', 'Claire', 'Lyon'),
+('Durand', 'Paul', 'Marseille');

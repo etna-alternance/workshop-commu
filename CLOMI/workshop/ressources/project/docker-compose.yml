@@ -48,6 +48,10 @@ services:
       - POSTGRES_DB=user_db
     depends_on:
       - user-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.users.rule=PathPrefix(`/users`)"
+      - "traefik.http.services.users.loadbalancer.server.port=5000"
     networks:
       - micro-services
 
@@ -69,6 +73,10 @@ services:
       - "5001:80"
     depends_on:
       - product-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.product.rule=PathPrefix(`/product`)"
+      - "traefik.http.services.product.loadbalancer.server.port=5001"
     networks:
       - micro-services
 
@@ -90,6 +98,10 @@ services:
       - "5002:80"
     depends_on:
       - order-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.orders.rule=PathPrefix(`/orders`)"
+      - "traefik.http.services.orders.loadbalancer.server.port=5002"
     networks:
       - micro-services
 
