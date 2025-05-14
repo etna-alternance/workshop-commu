@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 INSERT INTO products (nom, description, prix) VALUES
-("Corde", "Corde d'escalade", 79.99),
-("Souris", "Souris sans fil", 39.99),
-("IPhone 12", "Smartphone", 249.99),
-("Casque", "Casque audio", 129.99),
-("Webcam", "Webcam HD", 59.99);
+('Corde', 'Corde d escalade', 79.99),
+('Souris', 'Souris sans fil', 39.99),
+('IPhone 12', 'Smartphone', 249.99),
+('Casque', 'Casque audio', 129.99),
+('Webcam', 'Webcam HD', 59.99);

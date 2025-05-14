@@ -46,6 +46,7 @@ services:
       - POSTGRES_USER=user_user
       - POSTGRES_PASSWORD=user_password
       - POSTGRES_DB=user_db
+      - POSTGRES_HOST=user-db
     depends_on:
       - user-db
     labels:
@@ -71,6 +72,11 @@ services:
     build: ./product-service
     ports:
       - "5001:80"
+    environment:
+      - POSTGRES_USER=product_user
+      - POSTGRES_PASSWORD=product_password
+      - POSTGRES_DB=product_db
+      - POSTGRES_HOST=product-db
     depends_on:
       - product-db
     labels:
@@ -98,6 +104,11 @@ services:
       - "5002:80"
     depends_on:
       - order-db
+    environment:
+      - POSTGRES_USER=order_user
+      - POSTGRES_PASSWORD=order_password
+      - POSTGRES_DB=order_db
+      - POSTGRES_HOST=order-db
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.orders.rule=PathPrefix(`/orders`)"
