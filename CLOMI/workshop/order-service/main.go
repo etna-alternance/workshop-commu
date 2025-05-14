@@ -86,7 +86,7 @@ func handleOrderByID(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "DB error", 500)
             return
         }
-        // Ajouter ici sendKafkaEvent(Et mettez ici votre message, map[string]string{"order_id": id})
+        sendKafkaEvent("order_deleted", map[string]string{"order_id": id})
         w.WriteHeader(204)
     }
 }
@@ -112,7 +112,7 @@ func createOrder(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Ajouter ici sendKafkaEvent(Et mettez votre message ici, o)
+    sendKafkaEvent("order_created", o)
     w.WriteHeader(201)
     json.NewEncoder(w).Encode(o)
 }
