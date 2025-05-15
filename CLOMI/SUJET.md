@@ -17,97 +17,74 @@ Bienvenue dans ce workshop dédié à la découverte et la mise en pratique des 
 
 ---
 
-## Stack technique proposée
+## ⚙️ Technologies utilisées
 
-Chaque micro-service pourra être développé dans n'importe quel langage de programmation, néanmoins voici quelques implémentations de connection à une **BDD PostgreSQL** et à un **Kafka** dans les langages suivants :
+- **Docker Compose** : orchestration des conteneurs
+- **Traefik** : reverse proxy pour exposer les services HTTP
+- **PostgreSQL** : base de données pour chaque microservice
+- **Kafka** : système de messagerie pour les événements de commande
 
-- Node.js (Express)
-- Python (Flask)
+---
 
-Chaque micro-service dispose déjà d’une base permettant de se connecter à une base **PostgreSQL**.
+# Microservices Workshop – Architecture distribuée avec Docker Compose
+
+Ce projet met en œuvre une architecture microservices complète basée sur **Docker Compose**, simulant Amazon
+
+---
+
+## Structure du projet
+
+```
+├── docker-compose.yml         # Orchestration de tous les services
+├── notifier-service/          # Service de logs (Node.js)
+│   ├── app.js
+│   ├── Dockerfile
+│   └── package.json
+├── order-service/             # Service de gestion des commandes (Go)
+│   ├── Dockerfile
+│   ├── go.mod
+│   ├── go.sum
+│   ├── init-order.sql
+│   └── main.go
+├── product-service/           # Service de gestion des produits (Node.js)
+│   ├── app.js
+│   ├── Dockerfile
+│   ├── init-product.sql
+│   └── package.json
+└── user-service/              # Service de gestion des utilisateurs (Python)
+    ├── app.py
+    ├── Dockerfile
+    ├── init-user.sql
+    └── requirements.txt
+```
+
+## Micro service user
+
+|  Méthode | Endpoint     | Description                        |
+| -------- | ------------ | ---------------------------------- |
+| `GET`    | `/users`     | Récupère tous les utilisateurs     |
+| `POST`   | `/users`     | Crée un nouvel utilisateur         |
+| `PATCH`  | `/users/:id` | Met à jour un utilisateur existant |
+| `DELETE` | `/users/:id` | Supprime un utilisateur            |
+
+## Micro service product
+
+| Méthode | Endpoint    | Description                    |
+| ------- | ----------- | ------------------------------ |
+| `GET`   | `/products` | Récupère la liste des produits |
+
+## Micro service
+
+|  Méthode | Endpoint      | Description                      |
+| -------- | ------------- | -------------------------------- |
+| `GET`    | `/orders`     | Récupère toutes les commandes    |
+| `POST`   | `/orders`     | Crée une commande (Envoie un message via Kafka sur le topic `order-events`)     |
+| `DELETE` | `/orders/:id` | Supprime une commande (Envoie un message via Kafka sur le topic `order-events`) |
 
 ---
 
 ## Déroulé du workshop
 
-Pour faire marcher tout l'application il faudrait créer 4 services
+Pour faire marcher de manière complète l'application, il faudra implémenter un système de logs dans le service `notifier-service` en utilisant [KafkaJs](https://www.npmjs.com/package/kafkajs) afin de pouvoir traquer simplement les commandes
 
-### 1. Microservice Utilisateur
-
-Gère les utilisateurs de la plateforme. Chaque utilisateur a :
-
-- `id`
-- `nom`
-- `prénom`
-- `adresse`
-
-**API RESTful :**
-
-| Méthode | Endpoint        | Description                     |
-|---------|-----------------|---------------------            |
-| GET     | /users          | Récupérer tous les utilisateurs |
-| POST    | /users          | Créer un utilisateur            |
-| PATCH   | /users/:id      | Modifier un utilisateur         |
-| DELETE  | /users/:id      | Supprimer un utilisateur        |
-
----
-
-### 2. Microservice Produits
-
-Gère le catalogue de produits :
-
-- `id`
-- `nom`
-- `description`
-- `prix`
-
-**API RESTful :**
-
-| Méthode | Endpoint        | Description                 |
-|---------|-----------------|-------------------------    |
-| GET     | /products       | Récupérer tous les produits |
-
----
-
-### 3. Microservice Commandes
-
-Gère les commandes passées :
-
-- `id`
-- `date_achat`
-- `utilisateur_id`
-- `prix_total`
-- `adresse_livraison`
-- `produits`: liste de produits associés à la commande
-
-**API RESTful :**
-
-À chaque **POST** et **DELETE** envoie un message dans un topic **Kafka** à destination du service **Notifier**.
-
-| Méthode | Endpoint        | Description                    |
-|---------|-----------------|---------------------------     |
-| GET     | /orders         | Récupérer toutes les commandes |
-| POST    | /orders         | Créer une commande             |
-| DELETE  | /orders/:id     | Supprimer une commande         |
-
-### 4. Microservice Notifier
-
-À chaque ajout ou suppréssion de commande, il notifie (print dans la console) quelle commande à été ajoutée ou supprimée en écoutant un topic Kafka.
-
-**API Gateway :** utilisation de [**Traefik**](https://doc.traefik.io/) pour router les appels externes vers les bons services.
-
-```sh
-.
-├── api-gateway/              # Config Traefik
-├── user-service/             # Service utilisateur
-├── product-service/          # Service produits
-├── order-service/            # Service commandes
-├── notifier-service/         # Service notification Kafka
-└── docker-compose.yml
-```
-
----
-
-## Bonus
-
-- Ajout d’un front-end minimal (React ou autre)
+Cela consistera à lire les messages envoyés dans le topic `order-events` puis à print dans la console le contenu
